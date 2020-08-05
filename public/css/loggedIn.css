@@ -1,0 +1,33 @@
+body{
+    background: -webkit-linear-gradient(bottom, #0250c5, #d43f8d);
+    background: -o-linear-gradient(bottom, #0250c5, #d43f8d);
+    background: -moz-linear-gradient(bottom, #0250c5, #d43f8d);
+    background: linear-gradient(bottom, #0250c5, #d43f8d);
+    margin:0;
+    padding:0;
+
+}
+#productIMG{
+    width: 200x;
+    height: 200px;
+    cursor: pointer;
+    margin-right: 30px;
+}
+#allProducts{
+    color: white;
+    display: flex;
+}
+#productText{
+    position: relative;
+    text-align: center;
+}
+div{
+    margin: 0px;
+    display: block;
+}
+#product1{
+    margin:0px;
+}
+.product{
+    text-align: center;
+}

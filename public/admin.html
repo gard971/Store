@@ -1,0 +1,16 @@
+<title>admin panel</title>
+<script src="/socket.io/socket.io.js"></script>
+<script src="https://code.jquery.com/jquery-3.4.1.js" integrity="sha256-WpOohJOqMqqyKL9FccASB9O0KwACQJpFTUBLTYOVvVU="
+  crossorigin="anonymous"></script>
+<script src="js/admin.js"></script>
+<script src="js/public.js"></script>
+<link rel="stylesheet" href="css/admin.css">
+
+<form id="newProductForm" enctype="multipart/form-data" action="/newProduct" method="POST">
+    <h1>New Product!</h1>
+    <input name="ProductName" placeholder="Product name" required><br>
+    <input type="number" name="cost" placeholder="cost" required><br>
+    <label>Picture</label><br>
+    <input type="file" placeholder="Picture" name="file" required><br>
+    <button type="submit">submit</button>
+</form>

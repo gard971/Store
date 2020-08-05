@@ -1,0 +1,35 @@
+<h1>This account is still awaiting email confirmation.</h1>
+<p>Have you not recived an email?<container id="a" onclick="document.getElementById('form').hidden = false"> Send new email</container></p>
+<form id="form" hidden>
+    <input placeholder="email" type="email" id="email"><br>
+    <input type="submit" value="send new mail">
+</form>
+<style>
+    #a:hover{
+        cursor:pointer;
+        color:blue;
+    }
+    body{
+        text-align: center;
+        margin-top:30px;
+    }
+    ::-webkit-input-placeholder{
+        text-align: center;
+    }
+</style>
+<script src="/socket.io/socket.io.js"></script>
+<script
+  src="https://code.jquery.com/jquery-3.4.1.js"
+  integrity="sha256-WpOohJOqMqqyKL9FccASB9O0KwACQJpFTUBLTYOVvVU="
+  crossorigin="anonymous"></script>
+<script>
+    var socket = io()
+    $("#form").submit(e => {
+        e.preventDefault()
+        socket.emit("newEmail", $("#email").val())
+    })
+    socket.on("newMailSent", () => {
+        alert("a new email was sent. Please check your spam folder")
+    })
+</script>
+<script src="js/public.js"></script>

@@ -1,0 +1,14 @@
+body{
+    background: -webkit-linear-gradient(bottom, #0250c5, #d43f8d);
+    background: -o-linear-gradient(bottom, #0250c5, #d43f8d);
+    background: -moz-linear-gradient(bottom, #0250c5, #d43f8d);
+    background: linear-gradient(bottom, #0250c5, #d43f8d);
+    
+}
+form{
+    vertical-align: middle;
+    text-align: center;
+    position: absolute;
+    left:40%;
+    top:30%;
+}
