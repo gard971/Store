@@ -29,7 +29,7 @@ socket.on("products", (NONJSONproducts) => {
        div.id=`product${productNumber}`
        productNumber++
        var pic =  document.createElement("img")
-       pic.src = src = product.picFileLoc.substring(7)
+       pic.src = product.picFileLoc.substring(7)
        pic.id="productIMG"
        div.appendChild(pic)
        var p = document.createElement("p")
