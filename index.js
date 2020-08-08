@@ -16,7 +16,13 @@ const path = require("path")
 const bcrypt = require("bcrypt")
 const nodemailer = require("nodemailer")
 const formidable = require("formidable")
+const paypal = require("paypal-rest-sdk")
 var approvedKeys = []
+paypal.configure({
+    "mode":"sandbox",
+    "client_id":"AeY4EnVK7UJ_2AxR66cY_zXDrOAHjZq0TLVqnkpFY6BkwrOvdMXF9sYl44MAPcREP7ccuY-8dUxTB9cn",
+    "client_secret":"EAqK2uTsxgJVVWD3Gy1JWIWvoDqJVMHf9s9yIWsbsSM-CYNnxGWf19wiAKkoT2CNMmdA9Q4ptNS-iU5G"
+})
 app.post("/newProduct", (req, res) => {
     var formData = new formidable.IncomingForm()
     formData.parse(req, (err, fields, files) => {
@@ -164,6 +170,47 @@ io.on("connection", (socket) => {
     socket.on("requestProducts", () => {
         var json = jsonRead("data/products.json")
         socket.emit("products", JSON.stringify(json))
+    })
+    socket.on("requestSpesificProduct", (productName) => {
+        var products = jsonRead("data/products.json")
+        products.forEach(product => {
+            if(product.name = productName){
+                socket.emit("spesificProduct", product)
+            }
+        })
+    })
+    socket.on("buyNow", productName => {
+        var products = jsonRead("data/products.json")
+        products.forEach(product => {
+            if(product.name == productName){
+                const create_payment_json = {
+                    "intent": "sale",
+                    "payer": {
+                        "payment_method": "paypal"
+                    },
+                    "redirect_urls": {
+                        "return_url": "http://localhost:3000/success",
+                        "cancel_url": "http://localhost:3000/cancel"
+                    },
+                    "transactions": [{
+                        "item_list": {
+                            "items": [{
+                                "name": product.name,
+                                "sku": "001",
+                                "price": product.cost,
+                                "currency": "USD",
+                                "quantity": 1
+                            }]
+                        },
+                        "amount": {
+                            "currency": "USD",
+                            "total": product.cost
+                        },
+                        "description": product.name
+                    }]
+                };
+            }
+        })
     })
 })
 

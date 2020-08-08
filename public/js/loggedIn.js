@@ -35,6 +35,9 @@ socket.on("products", (NONJSONproducts) => {
        var p = document.createElement("p")
        p.innerHTML = product.name
        div.appendChild(p)
+       div.onclick = function(){
+           window.location.href=`/productInfo.html?name=${product.name}`
+       }
        document.getElementById("allProducts").appendChild(div)
     })
 })
