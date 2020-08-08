@@ -33,7 +33,7 @@ socket.on("products", (NONJSONproducts) => {
        pic.id="productIMG"
        div.appendChild(pic)
        var p = document.createElement("p")
-       p.innerHTML = product.name
+       p.innerHTML = product.name.split("-").join(" ")
        div.appendChild(p)
        div.onclick = function(){
            window.location.href=`/productInfo.html?name=${product.name}`

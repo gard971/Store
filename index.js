@@ -19,19 +19,19 @@ const formidable = require("formidable")
 const paypal = require("paypal-rest-sdk")
 var approvedKeys = []
 paypal.configure({
-    "mode":"sandbox",
-    "client_id":"AeY4EnVK7UJ_2AxR66cY_zXDrOAHjZq0TLVqnkpFY6BkwrOvdMXF9sYl44MAPcREP7ccuY-8dUxTB9cn",
-    "client_secret":"EAqK2uTsxgJVVWD3Gy1JWIWvoDqJVMHf9s9yIWsbsSM-CYNnxGWf19wiAKkoT2CNMmdA9Q4ptNS-iU5G"
+    "mode": "sandbox",
+    "client_id": "AeY4EnVK7UJ_2AxR66cY_zXDrOAHjZq0TLVqnkpFY6BkwrOvdMXF9sYl44MAPcREP7ccuY-8dUxTB9cn",
+    "client_secret": "EAqK2uTsxgJVVWD3Gy1JWIWvoDqJVMHf9s9yIWsbsSM-CYNnxGWf19wiAKkoT2CNMmdA9Q4ptNS-iU5G"
 })
 app.post("/newProduct", (req, res) => {
     var formData = new formidable.IncomingForm()
     formData.parse(req, (err, fields, files) => {
         var extension = files.file.name.substr(files.file.name.lastIndexOf("."))
-        var newPath = "public/images/productPics/" + fields.ProductName + extension
+        var newPath = "public/images/productPics/" + fields.ProductName.split(" ").join("-") + extension
         if (fs.existsSync(newPath)) {
             res.write("Product name allready exists")
             res.end()
-            
+
         } else {
             fs.rename(files.file.path, newPath, function (error) {
                 if (error) {
@@ -39,7 +39,7 @@ app.post("/newProduct", (req, res) => {
                 } else {
                     res.redirect("/admin.html?fileSent=true")
                     var newObject = {
-                        "name": fields.ProductName,
+                        "name": fields.ProductName.split(" ").join("-"),
                         "cost": +fields.cost,
                         "picFileLoc": newPath
                     }
@@ -51,6 +51,56 @@ app.post("/newProduct", (req, res) => {
         }
     })
 })
+app.get("/success", (req, res) => {
+    if (!req.query.product) {
+        res.send("Missing product name. You have not been charged. Please try again")
+        res.end()
+    }
+    else if(!req.query.email){
+        alert("missing email. You have not been charged!. Please go back to the main page and redoo the whole process")
+    }
+     else {
+        var paymentId
+        var payerId
+        var ammount
+        var execute_payment_json
+        var products = jsonRead("data/products.json")
+        products.forEach(product => {
+            if (product.name == req.query.product) {
+                ammount = product.cost
+            }
+        })
+        if (!ammount) {
+            res.send("somthing went wrong when proccessing your request. You have not been charged")
+            res.end()
+        } else {
+            payerId = req.query.PayerID;
+            paymentId = req.query.paymentId;
+
+            execute_payment_json = {
+                "payer_id": payerId,
+                "transactions": [{
+                    "amount": {
+                        "currency": "USD",
+                        "total": ammount
+                    }
+                }]
+            };
+        }
+        paypal.payment.execute(paymentId, execute_payment_json, function (error, payment) {
+            if (error) {
+                res.send("somthing went wrong when proccessing your request. You have not been charged")
+                res.end()
+            } else {
+                //stil needs to be upploded to an admin shipping page!!
+                sendMail(req.query.email, `Order confirmation`, `Helo ${req.query.email}, we have recived your order of "${req.query.product}" and we herby confirm that the transaction was succsesfully completed. We will alert you again when we have shipped your item!`)
+                res.redirect("TransactionCompleted.html")
+                res.end()
+            }
+        })
+    }
+})
+app.get('/cancel', (req, res) => res.send('Cancelled'));
 app.use(express.static(path.join(__dirname, "public")))
 
 io.on("connection", (socket) => {
@@ -61,7 +111,6 @@ io.on("connection", (socket) => {
             var found = false
             var needConfirm = false
             json.forEach(user => {
-                console.log(user.username + " " + username)
                 if (user.username == username && bcrypt.compareSync(password, user.password) && user.confirmation) {
                     socket.emit("redir", "needConfirm.html")
                     needConfirm = true
@@ -174,22 +223,22 @@ io.on("connection", (socket) => {
     socket.on("requestSpesificProduct", (productName) => {
         var products = jsonRead("data/products.json")
         products.forEach(product => {
-            if(product.name = productName){
+            if (product.name == productName) {
                 socket.emit("spesificProduct", product)
             }
         })
     })
-    socket.on("buyNow", productName => {
+    socket.on("buyNow", (productName, email) => {
         var products = jsonRead("data/products.json")
         products.forEach(product => {
-            if(product.name == productName){
+            if (product.name == productName) {
                 const create_payment_json = {
                     "intent": "sale",
                     "payer": {
                         "payment_method": "paypal"
                     },
                     "redirect_urls": {
-                        "return_url": "http://localhost:3000/success",
+                        "return_url": `http://localhost:3000/success?product=${productName}&email=${email}`,
                         "cancel_url": "http://localhost:3000/cancel"
                     },
                     "transactions": [{
@@ -209,6 +258,17 @@ io.on("connection", (socket) => {
                         "description": product.name
                     }]
                 };
+                paypal.payment.create(create_payment_json, function (error, payment) {
+                    if (error) {
+                        console.error(error)
+                    } else {
+                        for (var i = 0; i < payment.links.length; i++) {
+                            if (payment.links[i].rel == "approval_url") {
+                                socket.emit("redir", payment.links[i].href)
+                            }
+                        }
+                    }
+                })
             }
         })
     })
