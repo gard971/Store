@@ -1,0 +1,16 @@
+body{
+    background: #0250c5;
+    background: -webkit-linear-gradient(bottom, #0250c5, #d43f8d);
+    background: -o-linear-gradient(bottom, #0250c5, #d43f8d);
+    background: -moz-linear-gradient(bottom, #0250c5, #d43f8d);
+    background: linear-gradient(bottom, #0250c5, #d43f8d);
+    text-align:center;
+}
+#productIMG{
+    
+    width:200px;
+    height: 200px;
+}
+#allInfo{
+    margin-top:200px;
+}
