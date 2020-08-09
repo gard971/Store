@@ -115,6 +115,7 @@ app.get("/success", (req, res) => {
                 jsonWrite("data/waitingOrders.json", orders)
                 genInfo.nextOrderID++
                 jsonWrite("data/genInfo.json", genInfo)
+                io.sockets.emit("newOrder", newObject)
             }
         })
     }
@@ -300,9 +301,10 @@ io.on("connection", (socket) => {
         var index = 0;
         orders.forEach(order => {
             if(id == order.orderID){
-                sendMail(order.email, "Your order has shipped!", `hi ${order.email}, we have some great news for you. Your order of "${order.Item} has shipped!"`)
+                sendMail(order.email, "Your order has shipped!", `hi ${order.email}, we have some great news for you. Your order of "${order.Item}" has shipped!`)
                 orders.splice(index, 1)
                 jsonWrite("data/waitingOrders.json", orders) 
+                io.sockets.emit("RemoveItem", id)
             }
             index++
         })
