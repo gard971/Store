@@ -16,7 +16,9 @@ const path = require("path")
 const bcrypt = require("bcrypt")
 const nodemailer = require("nodemailer")
 const formidable = require("formidable")
-const paypal = require("paypal-rest-sdk")
+const paypal = require("paypal-rest-sdk");
+const { json } = require("express");
+const { stringify } = require("querystring");
 var approvedKeys = []
 paypal.configure({
     "mode": "sandbox",
@@ -96,6 +98,23 @@ app.get("/success", (req, res) => {
                 sendMail(req.query.email, `Order confirmation`, `Helo ${req.query.email}, we have recived your order of "${req.query.product}" and we herby confirm that the transaction was succsesfully completed. We will alert you again when we have shipped your item!`)
                 res.redirect("TransactionCompleted.html")
                 res.end()
+                var genInfo = jsonRead("data/genInfo.json")
+                var newObject = {
+                    "orderID":genInfo.nextOrderID,
+                    "Item":req.query.product,
+                    "email":req.query.email,
+                    "shipping":{
+                        "name":payment.payer.payer_info.shipping_address.recipient_name,
+                        "adress": payment.payer.payer_info.shipping_address.line1,
+                        "city":payment.payer.payer_info.shipping_address.city,
+                        "postal":payment.payer.payer_info.shipping_address.postal_code
+                    }
+                }
+                var orders = jsonRead("data/waitingOrders.json")
+                orders.push(newObject)
+                jsonWrite("data/waitingOrders.json", orders)
+                genInfo.nextOrderID++
+                jsonWrite("data/genInfo.json", genInfo)
             }
         })
     }
@@ -270,6 +289,22 @@ io.on("connection", (socket) => {
                     }
                 })
             }
+        })
+    })
+    socket.on("requestWaitingOrders", () => {
+        var orders = jsonRead("data/waitingOrders.json")
+        socket.emit("waitingOrders", JSON.stringify(orders))
+    })
+    socket.on("ItemShipped", id => {
+        var orders = jsonRead("data/waitingOrders.json")
+        var index = 0;
+        orders.forEach(order => {
+            if(id == order.orderID){
+                sendMail(order.email, "Your order has shipped!", `hi ${order.email}, we have some great news for you. Your order of "${order.Item} has shipped!"`)
+                orders.splice(index, 1)
+                jsonWrite("data/waitingOrders.json", orders) 
+            }
+            index++
         })
     })
 })
