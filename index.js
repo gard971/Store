@@ -1,8 +1,8 @@
 //config
 var port = 3000;
 var saltRounds = 10;
-var emailUsername = "gardsoreng@gmail.com"
-var emailPassword = "rhactdwiqjqwidos"
+var emailUsername = ""
+var emailPassword = ""
 
 //dependencies
 const app = require("express")()
